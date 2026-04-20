@@ -1,156 +1,199 @@
-# PicoScheduler
+# ⏰ PicoScheduler — Offline GPIO Task Scheduler for Raspberry Pi Pico W
 
-**Offline Device Task Scheduler for Raspberry Pi Pico W**
+![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%20Pico%20W-c51a4a?logo=raspberrypi&logoColor=white)
+![Language](https://img.shields.io/badge/Language-MicroPython-2b5b84?logo=python&logoColor=white)
+![Interface](https://img.shields.io/badge/Interface-Browser%20%2F%20Access%20Point-brightgreen)
+![Connectivity](https://img.shields.io/badge/Connectivity-Fully%20Offline-lightgrey)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Stars](https://img.shields.io/github/stars/Afif718/PicoScheduler?style=social)
 
-PicoScheduler is a fully offline automation system built for the Raspberry Pi Pico W. It enables you to control GPIO devices and schedule tasks through a simple web interface—all without requiring internet connectivity, external servers, or a router. The system stores all tasks, device configurations, and persisted time in JSON files, ensuring your setup survives reboots.
+> **Schedule and control GPIO devices from your browser — fully offline, no router, no internet, no cloud.**
 
-## Features
+---
 
-- **Fully Offline Operation** — Functions independently without internet, router, or cloud services
-- **Browser-Based Interface** — The Pico W creates a Wi-Fi Access Point for direct browser control
-- **Persistent Storage** — Tasks, devices, and RTC time are stored in JSON files and survive power loss
-- **GPIO Device Control** — Compatible with LEDs, relays, pumps, motors, and other GPIO-controlled devices
-- **Single Task per Device** — Prevents multiple overlapping tasks for the same device
-- **Flexible Task Management** — Create and delete one-time or daily recurring schedules
-- **Dynamic Device Creation** — Add new devices directly from the UI without code modifications
-- **Automatic Time Synchronization** — Receives local time from your browser on connection
-- **Internal Time Tracking** — Maintains accurate time using MicroPython's internal timer after initial sync
+## 🔍 Why PicoScheduler?
 
-<img width="234" height="442" alt="image" src="https://github.com/user-attachments/assets/58bcbc6e-dc4c-48c7-9e9a-764de01724d5" />
-<img width="401" height="442" alt="image" src="https://github.com/user-attachments/assets/a3e790b4-123b-4823-b4ff-383d9e6f84b1" />
-<img width="250" height="442" alt="image" src="https://github.com/user-attachments/assets/e2c6ece3-47d1-4c02-8991-b003bade35e2" />
-<img width="250" height="250" alt="image" src="https://github.com/user-attachments/assets/9c222f1f-ce7b-46d3-9bef-88cc4ab3c36c" />
+Most IoT schedulers assume you have Wi-Fi, a router, or cloud access. **PicoScheduler assumes none of that.**
 
-## Time Management System
+The Pico W acts as its own Access Point. You connect directly to it from any browser, schedule tasks, control devices, and walk away — it runs indefinitely offline with all data persisted across reboots. Perfect for **remote locations, agricultural setups, labs, and smart home projects** where network infrastructure is unavailable or unwanted.
 
-The Raspberry Pi Pico W does not include a hardware Real-Time Clock (RTC). PicoScheduler addresses this through a hybrid approach:
+---
 
-1. When you open the web interface, your browser transmits the current local time to the Pico
-2. The Pico sets its internal clock based on this synchronized time
-3. After synchronization, the Pico maintains time offline using MicroPython's millisecond timer (`utime.ticks_ms()`)
-4. In the event of power loss, the Pico resets to 00:00 until you reconnect to the interface
-5. The Pico persists the last set time in `time.json` so it can restore the RTC on next boot
+## ✨ Features
 
-This design eliminates the need for internet connectivity, NTP servers, or external RTC hardware.
+- 📴 **Fully offline operation** — no internet, no router, no cloud dependency
+- 🌐 **Browser-based UI** — Pico W hosts its own Wi-Fi Access Point for direct control
+- 💾 **Persistent storage** — tasks, devices, and RTC time survive power loss via JSON files
+- 🔌 **GPIO device control** — LEDs, relays, pumps, motors, and any GPIO-compatible device
+- 🔒 **One task per device** — enforced constraint prevents overlapping or conflicting schedules
+- 🗓️ **Flexible scheduling** — one-time or daily recurring tasks, created and deleted from the UI
+- ➕ **Dynamic device creation** — add new devices by name and GPIO pin, no code changes needed
+- 🕒 **Browser time sync** — receives local time from your browser on connect, no NTP needed
+- ⏱️ **Internal time tracking** — maintains accurate time offline using MicroPython's `utime.ticks_ms()`
 
-## Why Choose PicoScheduler?
+---
 
-- Immediate offline functionality
-- No network infrastructure required
-- Persistent device, task, and time storage
-- Built on MicroPython for easy customization
-- Ideal for automation in remote locations, agricultural applications, laboratory equipment, and offline IoT projects
+## 🕒 Time Management — How It Works
 
-## Use Cases
+The Raspberry Pi Pico W has **no hardware RTC**. PicoScheduler solves this with a smart hybrid approach:
 
-- Home automation (lighting, ventilation, relay control)
-- Agricultural irrigation and grow room automation
-- Laboratory equipment timing and control
-- Offline IoT automation projects
-- Educational and student projects
-- Timed relay-based systems
+```
+[You open the browser interface]
+         │
+         ▼
+[Browser sends current local time to Pico W]
+         │
+         ▼
+[Pico sets internal clock + saves to time.json]
+         │
+         ▼
+[Pico tracks time offline using utime.ticks_ms()]
+         │
+         ▼
+[On next boot → restores last known time from time.json]
+```
 
-## Project Structure
+> ⚡ After the initial browser sync, the Pico W tracks time entirely on its own — no NTP, no RTC module, no internet needed.
+
+**Power loss behavior:** Time resets to `00:00` until you reconnect to the interface, at which point it restores from `time.json` and continues tracking offline.
+
+---
+
+## 📁 Project Structure
 
 ```
 PicoScheduler/
 │
-├── main.py          # Web server, scheduler, and GPIO control logic
-├── tasks.json       # Auto-generated persistent task storage
-├── devices.json     # Auto-generated persistent device storage
-├── time.json        # Auto-generated RTC persistence storage
-├── README.md        
+├── main.py          # Web server, task scheduler, and GPIO control logic
+├── devices.json     # Auto-generated — persistent device configurations
+├── tasks.json       # Auto-generated — persistent scheduled tasks
+├── time.json        # Auto-generated — RTC persistence across reboots
+├── README.md
 └── LICENSE
 ```
 
-## Setup Instructions
+> The three JSON files are created automatically on first run — you only need to upload `main.py`.
 
-### 1. Flash MicroPython Firmware
+---
 
-Download the latest MicroPython firmware for Pico W and flash it using BOOTSEL mode.
+## 🛠️ Hardware Requirements
 
-### 2. Upload Project Files
+| Component | Details |
+|---|---|
+| Microcontroller | Raspberry Pi Pico W |
+| Devices | Any GPIO-compatible device (LED, relay, pump, motor) |
+| Power | USB or external 5V supply |
+| Client | Any device with a browser (phone, laptop, tablet) |
 
-Upload `main.py` to your Pico W using Thonny or your preferred method. The `tasks.json`, `devices.json`, and `time.json` files will be generated automatically on first run.
-
-### 3. Run the System
-
-1. Power up the Pico W
-2. Connect to the Access Point:
-   - **SSID:** `PicoW_Scheduler`
-   - **Password:** `12345678`
-3. Open your browser and navigate to: `http://192.168.4.1`
-4. Your browser will automatically send the current time to the Pico
-5. The system is now fully operational offline
-
-## Web Interface Overview
-
-### Time Display
-Displays the synchronized local time provided by your browser.
-
-### Task Management
-- Create new scheduled tasks (one task per device enforced)
-- Delete existing tasks
-- Configure one-time or daily recurring schedules
-
-### Device Management
-- Add devices by specifying name and GPIO pin
-- Control relays and LEDs directly
-- Remove user-added devices
-
-## Data Persistence
-
-All data is stored locally on the Pico W:
-
-- `tasks.json` — Stores all scheduled tasks
-- `devices.json` — Stores all device configurations
-- `time.json` — Stores last synchronized time for RTC restoration
-
-Files are updated immediately upon any changes, ensuring data integrity even in the event of unexpected power loss.
-
-## Hardware Example
+### Wiring Example
 
 ```
 Pico W
 │
-├── GPIO 15 → LED/Relay
-└── GND
+├── GPIO 15 → LED / Relay signal pin
+└── GND     → GND
 ```
 
-## Example Automation Workflow
+---
 
-1. Add device: "Bedroom Lamp" on GPIO 15
-2. Create schedule: Turn ON at 18:00, Turn OFF at 22:00
-3. System runs indefinitely offline after initial time synchronization
+## 🚀 Getting Started
 
-## Important Notes
+### 1. Flash MicroPython Firmware
 
-- Time tracking resets to 00:00 after power loss until the next interface connection
-- After reconnection, the Pico restores accurate time from `time.json` and maintains it offline
-- Device configurations and task data remain saved regardless of power loss
+Download the latest [MicroPython firmware for Pico W](https://micropython.org/download/RPI_PICO_W/) and flash it using **BOOTSEL mode**.
 
-## Future Development Roadmap
+### 2. Upload the Project
 
-- Hardware RTC module support
-- Enhanced UI design
-- Weekly and monthly scheduling options
-- Sensor integration and conditional automation
-- Task execution logging
-- Backup and restore utilities
+Upload `main.py` to your Pico W using [Thonny IDE](https://thonny.org/) or any MicroPython-compatible tool. The JSON files will be auto-generated on first boot.
 
-## Contributing
+### 3. Connect & Control
 
-Contributions are welcome. Please submit pull requests or open issues for bugs and feature requests.
+| Step | Action |
+|---|---|
+| Power on | Connect Pico W to power |
+| Join Wi-Fi | Connect to `PicoW_Scheduler` / Password: `12345678` |
+| Open browser | Navigate to `http://192.168.4.1` |
+| Time sync | Browser automatically sends your local time to Pico |
+| Done | System is fully operational — offline |
 
-## License
+---
 
-This project is licensed under the MIT License.
+## 🖥️ Web Interface Overview
 
-## Acknowledgments
+Once connected, the browser UI gives you full control:
 
-- MicroPython
-- Raspberry Pi Foundation
+**🕒 Time Display**
+Shows the synchronized local time pushed from your browser.
 
-## Support
+**📋 Task Management**
+- Create one-time or daily recurring schedules
+- One task per device — overlapping schedules are blocked
+- Delete tasks at any time
 
-If you find this project useful, please consider starring the repository on GitHub.
+**🔌 Device Management**
+- Add devices by name and GPIO pin number
+- Toggle relays and LEDs directly
+- Remove devices you no longer need
+
+**💾 Data Persistence**
+All changes are written to JSON immediately — device configs and tasks are safe even on sudden power loss.
+
+---
+
+## ⚙️ Example Automation Workflow
+
+```
+1. Add device → "Irrigation Pump" on GPIO 15
+2. Create task → Turn ON at 06:00, Turn OFF at 06:30 (daily)
+3. Disconnect from the Access Point
+4. System runs indefinitely, offline, on schedule
+```
+
+---
+
+## 🌍 Use Cases
+
+- 🏠 **Home automation** — lighting, fans, ventilation, relay control
+- 🌾 **Agricultural automation** — irrigation timers, grow room scheduling
+- 🧪 **Laboratory equipment** — timed control of instruments and test rigs
+- 📦 **Offline IoT projects** — automation without any network infrastructure
+- 🎓 **Education & student projects** — hands-on embedded systems learning
+- ⚡ **Timed relay systems** — anywhere a schedule + switch is needed
+
+---
+
+## 🔮 Future Development Roadmap
+
+- [ ] Hardware RTC module support (DS3231) for power-loss time recovery
+- [ ] Weekly and monthly scheduling options
+- [ ] Sensor integration with conditional/trigger-based automation
+- [ ] Task execution logging and history view
+- [ ] Enhanced UI design with mobile-first layout
+- [ ] Backup and restore utilities for JSON data
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Open an [issue](https://github.com/Afif718/PicoScheduler/issues) or submit a pull request for bug fixes, features, or improvements.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+## 🙏 Acknowledgments
+
+- [MicroPython](https://micropython.org/) — the runtime powering PicoScheduler
+- [Raspberry Pi Foundation](https://www.raspberrypi.org/) — for the Pico W hardware
+
+---
+
+## 👤 Author
+
+**M. H. A. Afif** — [@Afif718](https://github.com/Afif718)
+
+> *Automation that works wherever you are — no cloud, no router, no compromise.* ⏰
